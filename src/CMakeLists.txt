@@ -159,6 +159,10 @@ if (HYPRE_SEQUENTIAL)
   set (HYPRE_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 endif ()
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set (HYPRE_DEBUG ON CACHE BOOL "" FORCE)
+endif ()
+
 add_library (HYPRE)
 
 # Headers and sources

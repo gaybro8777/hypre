@@ -68,6 +68,9 @@
 /* Use SuperLU */
 #cmakedefine HAVE_SUPERLU 1
 
+/* Debug mode */
+#cmakedefine HYPRE_DEBUG 1
+
 /* Define as follows to set the Fortran name mangling scheme:
  * 0 = unspecified
  * 1 = no underscores
