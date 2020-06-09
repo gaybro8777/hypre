@@ -20,7 +20,7 @@ set (HYPRE_SRCDIR  "${PROJECT_SOURCE_DIR}")
 
 project (hypre
   VERSION ${HYPRE_VERSION}
-  LANGUAGES C)
+  LANGUAGES C Fortran)
 
 if (${hypre_SOURCE_DIR} STREQUAL ${hypre_BINARY_DIR})
   message(FATAL_ERROR "In-place build not allowed! Please use a separate build directory. See the Users Manual or INSTALL file for details.")
@@ -251,6 +251,7 @@ if (NOT HYPRE_SEQUENTIAL)
   find_program (MPIEXEC_EXECUTABLE NAMES mpiexec mpirun)
   find_package (MPI REQUIRED)
   target_link_libraries (HYPRE PUBLIC MPI::MPI_C)
+  target_link_libraries (HYPRE PUBLIC MPI::MPI_Fortran)
 endif (NOT HYPRE_SEQUENTIAL)
 
 # Set OpenMP compile flags
