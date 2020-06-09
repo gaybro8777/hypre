@@ -20,7 +20,7 @@ set (HYPRE_SRCDIR  "${PROJECT_SOURCE_DIR}")
 
 project (hypre
   VERSION ${HYPRE_VERSION}
-  LANGUAGES C Fortran)
+  LANGUAGES C)
 
 if (${hypre_SOURCE_DIR} STREQUAL ${hypre_BINARY_DIR})
   message(FATAL_ERROR "In-place build not allowed! Please use a separate build directory. See the Users Manual or INSTALL file for details.")
@@ -29,6 +29,8 @@ endif ()
 # Set cmake module path
 set(CMAKE_MODULE_PATH "${hypre_SOURCE_DIR}/config/cmake" "${CMAKE_MODULE_PATH}")
 include(hypre_CMakeUtilities)
+include(CheckLanguage)
+include(CheckSymbolExists)
 
 # Set default installation directory, but provide a means for users to change
 set (HYPRE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/hypre" CACHE PATH
@@ -60,6 +62,7 @@ option(HYPRE_ENABLE_HYPRE_LAPACK     "Use internal LAPACK library" ON)
 option(HYPRE_ENABLE_PERSISTENT_COMM  "Use persistent communication" OFF)
 option(HYPRE_ENABLE_GLOBAL_PARTITION "Use global partitioning" OFF)
 option(HYPRE_ENABLE_FEI              "Use FEI" OFF) # TODO: Add this cmake feature
+option(HYPRE_ENABLE_FORTRAN          "Requires a working Fortran compile" ON) 
 option(HYPRE_WITH_MPI                "Compile with MPI" ON)
 option(HYPRE_WITH_OPENMP             "Use OpenMP" OFF)
 option(HYPRE_WITH_HOPSCOTCH          "Use hopscotch hashing with OpenMP" OFF)
@@ -216,6 +219,28 @@ if(DSUPERLU_FOUND)
   set(HYPRE_USING_DSUPERLU TRUE)
 endif()
 
+# Fortran
+if (HYPRE_ENABLE_FORTRAN)
+  check_language(Fortran)
+  if(CMAKE_Fortran_COMPILER)
+    enable_language(Fortran)
+  else()
+    message(WARNING "No Fortran support")
+  endif()
+endif()
+
+# Set MPI compile flags
+if (NOT HYPRE_SEQUENTIAL)
+  find_program (MPIEXEC_EXECUTABLE NAMES mpiexec mpirun)
+  find_package (MPI REQUIRED)
+  target_link_libraries (HYPRE PUBLIC MPI::MPI_C)
+  if (HYPRE_ENABLE_FORTRAN)
+    target_link_libraries (HYPRE PUBLIC MPI::MPI_Fortran)
+    # Checking whether MPI_Comm_f2c exists
+    check_symbol_exists(MPI_Comm_f2c "mpi.h" HYPRE_HAVE_MPI_COMM_F2C)
+  endif(HYPRE_ENABLE_FORTRAN)
+endif (NOT HYPRE_SEQUENTIAL)
+
 # Headers and sources: remaining subdirectories
 set(HYPRE_DIRS utilities multivector krylov seq_mv parcsr_mv parcsr_block_mv distributed_matrix IJ_mv matrix_matrix distributed_ls parcsr_ls struct_mv struct_ls sstruct_mv sstruct_ls)
 foreach(DIR IN LISTS HYPRE_DIRS)
@@ -245,14 +270,6 @@ if (HYPRE_SHARED)
 else ()
   set (BUILD_SHARED_LIBS OFF CACHE INTERNAL "" FORCE)
 endif ()
-
-# Set MPI compile flags
-if (NOT HYPRE_SEQUENTIAL)
-  find_program (MPIEXEC_EXECUTABLE NAMES mpiexec mpirun)
-  find_package (MPI REQUIRED)
-  target_link_libraries (HYPRE PUBLIC MPI::MPI_C)
-  target_link_libraries (HYPRE PUBLIC MPI::MPI_Fortran)
-endif (NOT HYPRE_SEQUENTIAL)
 
 # Set OpenMP compile flags
 if (HYPRE_USING_OPENMP)
