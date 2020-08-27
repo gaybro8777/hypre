@@ -191,7 +191,11 @@ struct_newboxloop: struct_newboxloop.o $(KOKKOS_LINK_DEPENDS)
 	@echo  "Building" $@ "... "
 	${LINK_CC} -o $@ $< ${LFLAGS}
 
-test_mgr: test_mgr.o
+test_mgr: test_mgr.${OBJ_SUFFIX}
+	@echo  "Building" $@ "... "
+	${LINK_CC} -o $@ $< ${LFLAGS}
+
+test_mgr_gpu: test_mgr_gpu.${OBJ_SUFFIX}
 	@echo  "Building" $@ "... "
 	${LINK_CC} -o $@ $< ${LFLAGS}
 
